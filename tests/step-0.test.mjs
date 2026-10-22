@@ -12,6 +12,14 @@ test('STEP 0：建立有內容且座標不重疊的小島方塊地形', () => {
   assert.ok(island.blocks.some(({ type }) => type === 'grass'));
 });
 
+test('STEP 0：小島內部泥土層保留指定缺塊', () => {
+  const island = createIslandSpec();
+  assert.equal(
+    island.blocks.some(({ x, y, z }) => x === -2 && y === -1 && z === 1),
+    false,
+  );
+});
+
 test('STEP 0：草地與木頭各面使用指定貼圖，其他方塊六面一致', () => {
   const island = createIslandSpec();
   assert.deepEqual(island.faceTextures.grass, {
