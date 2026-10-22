@@ -20,6 +20,20 @@ test('STEP 0：小島內部泥土層保留指定缺塊', () => {
   );
 });
 
+test('STEP 0：小島地表有許多刻意設計的缺空處', () => {
+  const island = createIslandSpec();
+  const surfaceGaps = (island.intentionalGaps ?? []).filter(({ y }) => y === 0);
+
+  assert.ok(surfaceGaps.length >= 12, '地表至少要有 12 處刻意缺空');
+  for (const { x, y, z } of surfaceGaps) {
+    assert.equal(
+      island.blocks.some((block) => block.x === x && block.y === y && block.z === z),
+      false,
+      `刻意缺空座標 ${x},${y},${z} 不應有方塊`,
+    );
+  }
+});
+
 test('STEP 0：草地與木頭各面使用指定貼圖，其他方塊六面一致', () => {
   const island = createIslandSpec();
   assert.deepEqual(island.faceTextures.grass, {
