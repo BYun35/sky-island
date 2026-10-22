@@ -1,0 +1,35 @@
+:root {
+  color-scheme: light;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  background: #bfe0f4;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #scene {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+canvas { display: block; }
+
+.title-card {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  padding: 9px 16px;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 72%);
+  color: #24465b;
+  box-shadow: 0 4px 20px rgb(34 71 91 / 10%);
+}
+
+.title-card h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
