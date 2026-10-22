@@ -10,7 +10,8 @@ export const createIslandSpec = () => {
   for (const { y, radius, type } of layers) {
     for (let x = -radius; x <= radius; x += 1) {
       for (let z = -radius; z <= radius; z += 1) {
-        if (x * x + z * z <= radius * radius) {
+        const isRetainedGap = x === -2 && y === -1 && z === 1;
+        if (x * x + z * z <= radius * radius && !isRetainedGap) {
           blocks.push({ x, y, z, type });
         }
       }
