@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createIslandSpec } from './island-spec.js';
-import { enterIslandView } from './island-view.js';
+import { enterIslandView, rotateIslandCamera } from './island-view.js';
 import { loadAtlasTiles } from './atlas-textures.js';
 import { advanceMining, cancelMining, startMining } from './mining.js';
 
@@ -108,11 +108,20 @@ function hitBlocks(event) {
 }
 
 let islandClickCandidate = false;
+let pointerIsDown = false;
+let orbitDragStarted = false;
+let pointerDownX = 0;
+let lastPointerX = 0;
+const islandCenter = new THREE.Vector3(0, 0, 0);
+
 renderer.domElement.addEventListener('pointerdown', (event) => {
   if (event.button !== 0) return;
   const hits = hitBlocks(event);
-  if (hits.length === 0) return;
-  islandClickCandidate = true;
+  pointerIsDown = true;
+  orbitDragStarted = false;
+  islandClickCandidate = hits.length > 0;
+  pointerDownX = event.clientX;
+  lastPointerX = event.clientX;
   const miningHit = hits.find(({ object }) =>
     object.userData.blockType === 'dirt' || object.userData.blockType === 'stone');
   if (miningHit) {
@@ -121,18 +130,37 @@ renderer.domElement.addEventListener('pointerdown', (event) => {
   }
   renderer.domElement.setPointerCapture(event.pointerId);
 });
-renderer.domElement.addEventListener('pointerup', (event) => {
-  if (event.button === 0 && islandClickCandidate) {
-    enterIslandView(camera, new THREE.Vector3(0, 0, 0));
+
+renderer.domElement.addEventListener('pointermove', (event) => {
+  if (!pointerIsDown) return;
+  const deltaX = event.clientX - lastPointerX;
+  lastPointerX = event.clientX;
+  if (!orbitDragStarted && Math.abs(event.clientX - pointerDownX) > 3) {
+    orbitDragStarted = true;
+    islandClickCandidate = false;
+    clearMining();
   }
+  if (orbitDragStarted) rotateIslandCamera(camera, deltaX, islandCenter);
+});
+
+renderer.domElement.addEventListener('pointerup', (event) => {
+  if (event.button === 0 && islandClickCandidate && !orbitDragStarted) {
+    enterIslandView(camera, islandCenter);
+  }
+  pointerIsDown = false;
+  orbitDragStarted = false;
   islandClickCandidate = false;
   clearMining();
 });
 renderer.domElement.addEventListener('pointercancel', () => {
+  pointerIsDown = false;
+  orbitDragStarted = false;
   islandClickCandidate = false;
   clearMining();
 });
 renderer.domElement.addEventListener('lostpointercapture', () => {
+  pointerIsDown = false;
+  orbitDragStarted = false;
   islandClickCandidate = false;
   clearMining();
 });
