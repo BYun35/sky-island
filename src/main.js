@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createIslandSpec } from './island-spec.js';
+import { loadAtlasTiles } from './atlas-textures.js';
 
 const spec = createIslandSpec();
 const scene = new THREE.Scene();
@@ -20,36 +21,12 @@ const sun = new THREE.DirectionalLight(0xffffff, 2.1);
 sun.position.set(-7, 12, 8);
 scene.add(sun);
 
-const atlas = new THREE.TextureLoader().load('./sky-island-assets/atlas.png');
-atlas.colorSpace = THREE.SRGBColorSpace;
-
-const atlasCells = {
-  grass_top: 0,
-  grass_side: 1,
-  dirt: 2,
-  stone: 3,
-  log_side: 4,
-  log_top: 5,
-  leaves: 6,
-  planks: 7,
-  sand: 8,
-  brick: 9,
-};
-const tileTextures = new Map();
+const tileTextures = await loadAtlasTiles(() =>
+  new THREE.TextureLoader().loadAsync('./sky-island-assets/atlas.png'),
+);
 
 function tileTexture(name) {
-  if (!tileTextures.has(name)) {
-    const cell = atlasCells[name];
-    const texture = atlas.clone();
-    texture.repeat.set(0.25, 0.25);
-    texture.offset.set((cell % 4) * 0.25, 1 - (Math.floor(cell / 4) + 1) * 0.25);
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.NearestFilter;
-    texture.generateMipmaps = false;
-    texture.needsUpdate = true;
-    tileTextures.set(name, texture);
-  }
-  return tileTextures.get(name);
+  return tileTextures[name];
 }
 
 function faceMaterials(type) {
