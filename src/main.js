@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createIslandSpec } from './island-spec.js';
+import { enterIslandView } from './island-view.js';
 import { loadAtlasTiles } from './atlas-textures.js';
 import { advanceMining, cancelMining, startMining } from './mining.js';
 
@@ -98,26 +99,43 @@ function updateCrackOverlay() {
   scene.add(crackOverlay);
 }
 
-function hitBlock(event) {
+function hitBlocks(event) {
   const bounds = renderer.domElement.getBoundingClientRect();
   pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
   pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
-  return raycaster.intersectObjects(blocks, false).find(({ object }) =>
-    object.userData.blockType === 'dirt' || object.userData.blockType === 'stone');
+  return raycaster.intersectObjects(blocks, false);
 }
 
+let islandClickCandidate = false;
 renderer.domElement.addEventListener('pointerdown', (event) => {
   if (event.button !== 0) return;
-  const hit = hitBlock(event);
-  if (!hit) return;
-  miningTarget = hit.object;
-  miningSession = startMining(miningTarget.userData.blockType);
+  const hits = hitBlocks(event);
+  if (hits.length === 0) return;
+  islandClickCandidate = true;
+  const miningHit = hits.find(({ object }) =>
+    object.userData.blockType === 'dirt' || object.userData.blockType === 'stone');
+  if (miningHit) {
+    miningTarget = miningHit.object;
+    miningSession = startMining(miningTarget.userData.blockType);
+  }
   renderer.domElement.setPointerCapture(event.pointerId);
 });
-renderer.domElement.addEventListener('pointerup', clearMining);
-renderer.domElement.addEventListener('pointercancel', clearMining);
-renderer.domElement.addEventListener('lostpointercapture', clearMining);
+renderer.domElement.addEventListener('pointerup', (event) => {
+  if (event.button === 0 && islandClickCandidate) {
+    enterIslandView(camera, new THREE.Vector3(0, 0, 0));
+  }
+  islandClickCandidate = false;
+  clearMining();
+});
+renderer.domElement.addEventListener('pointercancel', () => {
+  islandClickCandidate = false;
+  clearMining();
+});
+renderer.domElement.addEventListener('lostpointercapture', () => {
+  islandClickCandidate = false;
+  clearMining();
+});
 renderer.domElement.addEventListener('contextmenu', (event) => event.preventDefault());
 
 function render(now) {
